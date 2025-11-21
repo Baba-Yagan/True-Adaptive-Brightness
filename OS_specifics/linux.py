@@ -1,19 +1,27 @@
 from common import average_light_level
 import subprocess
 
+_primary_display = None
+
 def get_primary_display():
-    """Get the primary display name for xrandr"""
+    """Get the primary display name for xrandr, cached for performance"""
+    global _primary_display
+    if _primary_display is not None:
+        return _primary_display
+        
     try:
         result = subprocess.run(['xrandr', '--query'], 
                               capture_output=True, text=True, check=True)
         lines = result.stdout.split('\n')
         for line in lines:
             if ' connected primary' in line:
-                return line.split()[0]
+                _primary_display = line.split()[0]
+                return _primary_display
         # If no primary found, get first connected display
         for line in lines:
             if ' connected' in line and 'disconnected' not in line:
-                return line.split()[0]
+                _primary_display = line.split()[0]
+                return _primary_display
     except (subprocess.CalledProcessError, FileNotFoundError):
         pass
     
@@ -23,10 +31,12 @@ def get_primary_display():
         try:
             subprocess.run(['xrandr', '--output', display, '--brightness', '1.0'], 
                          capture_output=True, check=True)
-            return display
+            _primary_display = display
+            return _primary_display
         except subprocess.CalledProcessError:
             continue
     
+    _primary_display = None
     return None
 
 def set_brightness(brightness):
@@ -47,6 +57,9 @@ def set_brightness(brightness):
         print(f"Error setting brightness with xrandr: {e}")
 
 def check_linux(min_brightness, max_brightness, smooth_transitions=True, verbose=True):
+    # Ensure the display is cached
+    get_primary_display()
+    
     target_brightness = average_light_level(min_brightness, max_brightness, smooth_transitions, verbose)
     set_brightness(target_brightness)
 
