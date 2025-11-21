@@ -19,27 +19,23 @@ def set_brightness(brightness):
 
 
 
-def check_windows():
+def check_windows(min_brightness, max_brightness, smooth_transitions=True, verbose=True):
     try:
-        average_brightness = average_light_level()
+        target_brightness = average_light_level(min_brightness, max_brightness, smooth_transitions, verbose)
     except OSError as e:
         print(f"Error capturing screen: {e}. Retrying in 5 seconds...")
         time.sleep(5)
-        check_windows()
+        check_windows(min_brightness, max_brightness, smooth_transitions, verbose)
         return
     
+    current_brightness = get_brightness()
     
-    if(average_brightness > 100):
-        current_brightness = get_brightness()
-        if(current_brightness > 50):
-            set_brightness(30)
-    elif(average_brightness < 50):
-        current_brightness = get_brightness()
-        if(current_brightness < 50):
-            set_brightness(80)
+    # Only adjust if there's a significant difference (avoid constant small adjustments)
+    if abs(current_brightness - target_brightness) > 5:
+        set_brightness(target_brightness)
+        if verbose:
+            print(f"Brightness adjusted from {current_brightness}% to {target_brightness}%")
     
-    
-    
-    
-    print("Average light level:", average_brightness)
+    if verbose:
+        print("Target brightness level:", target_brightness)
     

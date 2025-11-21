@@ -1,33 +1,27 @@
-<h1>Content Aware Auto Brightness</h1>
-<p>
-  A simple Python script to change brightness based on the content on your screen.
-</p>
-<p>
-  Currently for Windows and MacOS. (working on Linux)
-</p>
+# Content Aware Auto Brightness
 
-<h2>To Install</h2>
-<ul>
-  <li>Clone this repository.</li>
-  <li>Run <code>pip install -r requirements.txt</code>.</li>
-  <li>Run <code>python sys_tray.py</code>.</li>
-</ul>
+A simple Python script to change brightness based on the content on your screen.
 
-<h2>For Linux Users</h2>
-<ul>
-  <li>This uses <a href = "https://www.commandlinux.com/man-page/man1/xrandr.1.html">xrandr</a> for brightness control.</li>
-  <li>To install xrandr:</li>
-  <ul>
-    <li>Debian/Ubuntu: <code>sudo apt install x11-xserver-utils</code>.</li>
-    <li>Fedora: <code>sudo dnf install libXrandr</code>.</li>
-    <li>Arch: <code>sudo pacman -S xorg-xrandr</code>.</li>
-  </ul>
-</ul>
-<h2>For MacOS Users</h2>
-<ul>
-  <li>This uses <a href = "https://github.com/nriley/brightness">brightness</a> for brightness control.</li>
-  <li>To install brightness:</li>
-  <code>git clone https://github.com/nriley/brightness.git && cd brightness && make && sudo make install</code>
+Currently for GNU+Linux with X11 graphic enviroment, might work for Windows and MacOs
 
-</ul>
+## To Install
+* Clone this repository.
+* Run `pip install -r requirements.txt`.
+* Run `python3 main.py <smooth> <min_brightness> <max_brightness> [verbose]`
 
+arguments:
+```
+smooth: 'true' or 'false'
+min_brightness: 0-100
+max_brightness: 0-100
+verbose: 'true' or 'false' (optional, default: 'true')
+```
+* example: `python main.py false 30 100 false` 
+
+## For Linux Users
+* This uses [xrandr](https://www.commandlinux.com/man-page/man1/xrandr.1.html) for brightness control.
+
+## For MacOS Users
+* This uses [brightness](https://github.com/nriley/brightness) for brightness control.
+* To install brightness:
+`git clone https://github.com/nriley/brightness.git && cd brightness && make && sudo make install`

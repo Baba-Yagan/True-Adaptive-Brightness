@@ -57,9 +57,6 @@ def set_brightness(brightness):
         print(f"Error setting brightness with xrandr: {e}")
 
 def check_linux(min_brightness, max_brightness, smooth_transitions=True, verbose=True):
-    # Ensure the display is cached
-    get_primary_display()
-    
     target_brightness = average_light_level(min_brightness, max_brightness, smooth_transitions, verbose)
     set_brightness(target_brightness)
 

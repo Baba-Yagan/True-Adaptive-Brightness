@@ -1,5 +1,2 @@
 pillow
 numpy
-wmi
-pywin32
-pystray
