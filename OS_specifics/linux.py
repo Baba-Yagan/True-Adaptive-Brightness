@@ -1,23 +1,54 @@
 from common import average_light_level
 import subprocess
 
-def set_brightness(brightness):
+def get_primary_display():
+    """Get the primary display name for xrandr"""
     try:
-        gamma = brightness / 100.0
-        xrandr_output = subprocess.check_output(['xrandr']).decode('utf-8')
-        connected_displays = [line.split()[0] for line in xrandr_output.splitlines() if ' connected' in line]
-
-        for display in connected_displays:
-            subprocess.run(['xrandr', '--output', display, '--brightness', str(gamma)])
-            
-    except Exception as e:
-        print("Error:", e)
-
-def check_linux():
-    average_brightness = average_light_level()
-    if(average_brightness > 100):
-        set_brightness(30)
-    elif(average_brightness < 50):
-        set_brightness(80)
+        result = subprocess.run(['xrandr', '--query'], 
+                              capture_output=True, text=True, check=True)
+        lines = result.stdout.split('\n')
+        for line in lines:
+            if ' connected primary' in line:
+                return line.split()[0]
+        # If no primary found, get first connected display
+        for line in lines:
+            if ' connected' in line and 'disconnected' not in line:
+                return line.split()[0]
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
     
-    print("Average light level:", average_brightness)
+    # Fallback to common display names
+    common_displays = ['eDP-1', 'LVDS-1', 'DP-1', 'HDMI-1', 'VGA-1']
+    for display in common_displays:
+        try:
+            subprocess.run(['xrandr', '--output', display, '--brightness', '1.0'], 
+                         capture_output=True, check=True)
+            return display
+        except subprocess.CalledProcessError:
+            continue
+    
+    return None
+
+def set_brightness(brightness):
+    """Set brightness using xrandr overlay (0-100% maps to 0.1-1.0)"""
+    # Convert percentage to xrandr brightness value (0.1 to 1.0)
+    # Minimum of 0.1 to prevent completely black screen
+    xrandr_brightness = max(0.1, min(1.0, brightness / 100.0))
+    
+    display = get_primary_display()
+    if not display:
+        print("Error: Could not detect display for xrandr")
+        return
+    
+    try:
+        subprocess.run(['xrandr', '--output', display, '--brightness', str(xrandr_brightness)],
+                      check=True, capture_output=True)
+    except (subprocess.CalledProcessError, FileNotFoundError) as e:
+        print(f"Error setting brightness with xrandr: {e}")
+
+def check_linux(min_brightness, max_brightness, smooth_transitions=True, verbose=True):
+    target_brightness = average_light_level(min_brightness, max_brightness, smooth_transitions, verbose)
+    set_brightness(target_brightness)
+
+    if verbose:
+        print("Target brightness level:", target_brightness)
